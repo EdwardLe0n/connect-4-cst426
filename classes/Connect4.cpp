@@ -1,4 +1,5 @@
 #include "Connect4.h"
+#include <utility>
 
 Connect4::Connect4() : Game() {
     _grid = new Grid(6, 7);
@@ -30,17 +31,51 @@ Bit* Connect4::createPiece(int pieceType) {
 }
 
 bool Connect4::actionForEmptyHolder(BitHolder &holder) {
-    return false; // Checkers doesn't place new pieces
+    
+    if (holder.bit()) {
+        return false;
+    }
+
+    Bit *bit = createPiece(getCurrentPlayer()->playerNumber() == 0 ? HUMAN_PLAYER : AI_PLAYER);
+    if (bit) {
+
+        ChessSquare* some_square = (ChessSquare*) &holder;
+
+        ImVec2 current = holder.getPosition();
+        bit->setPosition(current);
+
+        std::pair<int, int> coords = {some_square->getColumn(), some_square->getRow()};
+
+        std::cout << "Dropped at height " << some_square->getRow() << std::endl;
+
+        for (int y = coords.second; y < _gameOptions.rowY - 1; y++) {
+
+            BitHolder* some_holder = (BitHolder*)_grid->getSquare(coords.first, coords.second + 1);
+
+            if (some_holder->bit()) {
+                break;
+            }
+            else {
+                coords.second++;
+            }
+
+        }
+
+        bit->moveTo(_grid->getSquare(coords.first, coords.second)->getPosition());
+        _grid->getSquare(coords.first, coords.second)->setBit(bit);
+
+        endTurn();
+        return true;
+    }
+    
+    return false;
 }
 
 bool Connect4::canBitMoveFrom(Bit &bit, BitHolder &src) {
-    
-    return true;
+    return false;
 }
 
 bool Connect4::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) {
-    
-
     return false;
 }
 
@@ -63,7 +98,7 @@ void Connect4::stopGame() {
 }
 
 std::string Connect4::initialStateString() {
-    return "111111111111--------333333333333";
+    return "-------------------------------------------------";
 }
 
 std::string Connect4::stateString() {
