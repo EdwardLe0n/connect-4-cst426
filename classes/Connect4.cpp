@@ -32,16 +32,19 @@ Bit* Connect4::createPiece(int pieceType) {
 
 bool Connect4::actionForEmptyHolder(BitHolder &holder) {
     
-    if (holder.bit()) {
+    ChessSquare* some_square = (ChessSquare*) &holder;
+    
+    BitHolder* top_holder = (BitHolder*)_grid->getSquare(some_square->getColumn(), 0);
+    some_square = (ChessSquare*)top_holder;
+
+    if (top_holder->bit()) {
         return false;
     }
 
     Bit *bit = createPiece(getCurrentPlayer()->playerNumber() == 0 ? HUMAN_PLAYER : AI_PLAYER);
     if (bit) {
 
-        ChessSquare* some_square = (ChessSquare*) &holder;
-
-        ImVec2 current = holder.getPosition();
+        ImVec2 current = top_holder->getPosition();
         bit->setPosition(current);
 
         std::pair<int, int> coords = {some_square->getColumn(), some_square->getRow()};
