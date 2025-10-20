@@ -49,8 +49,6 @@ bool Connect4::actionForEmptyHolder(BitHolder &holder) {
 
         std::pair<int, int> coords = {some_square->getColumn(), some_square->getRow()};
 
-        std::cout << "Dropped at height " << some_square->getRow() << std::endl;
-
         for (int y = coords.second; y < _gameOptions.rowY - 1; y++) {
 
             BitHolder* some_holder = (BitHolder*)_grid->getSquare(coords.first, coords.second + 1);
@@ -87,6 +85,151 @@ void Connect4::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
 }
 
 Player* Connect4::checkForWinner() {
+
+    for (int y = 0; y < _gameOptions.rowY; y++) {
+        
+        for (int x = 0; x < _gameOptions.rowX; x++) {
+
+            ChessSquare* at_square = _grid->getSquare(x, y);
+
+            if (at_square->bit() == nullptr) {
+                continue;
+            }
+
+            // std::cout << "found a piece" << std::endl;
+
+            ChessSquare* squareToCheck = at_square;
+
+            // check right
+
+            for (int i = 0; i < 3; i++) {
+                
+                // safety checks
+
+                if(squareToCheck->getColumn() + 1 >= _gameOptions.rowX) {
+                    break;
+                }
+
+                // grabs a ref to the new chess square
+                squareToCheck = _grid->getE(squareToCheck->getColumn(), squareToCheck->getRow());
+
+                // checks if it has a player
+                if(squareToCheck->bit() == nullptr) {
+                    break;
+                }
+                
+                // break if at any point the elements don't match up
+                if (at_square->bit()->getOwner() != squareToCheck->bit()->getOwner()) {
+                    break;
+                }
+
+                // Win check
+                if(i == 2) {
+                    return at_square->bit()->getOwner();
+                }
+
+            }
+
+            // Checks below
+
+            squareToCheck = at_square;
+
+            for (int i = 0; i < 3; i++) {
+                
+                // safety checks
+
+                if(squareToCheck->getRow() + 1 >= _gameOptions.rowY) {
+                    break;
+                }
+
+                // grabs a ref to the new chess square
+                squareToCheck = _grid->getS(squareToCheck->getColumn(), squareToCheck->getRow());
+
+                // checks if it has a player
+                if(squareToCheck->bit() == nullptr) {
+                    break;
+                }
+                
+                // break if at any point the elements don't match up
+                if (at_square->bit()->getOwner() != squareToCheck->bit()->getOwner()) {
+                    break;
+                }
+
+                // Win check
+                if(i == 2) {
+                    return at_square->bit()->getOwner();
+                }
+
+            }
+
+            // Checks up right
+
+            squareToCheck = at_square;
+
+            for (int i = 0; i < 3; i++) {
+                
+                // safety checks
+
+                if(squareToCheck->getColumn() + 1 >= _gameOptions.rowX || squareToCheck->getRow() - 1 < 0) {
+                    break;
+                }
+
+                // grabs a ref to the new chess square
+                squareToCheck = _grid->getFR(squareToCheck->getColumn(), squareToCheck->getRow());
+
+                // checks if it has a player
+                if(squareToCheck->bit() == nullptr) {
+                    break;
+                }
+                
+                // break if at any point the elements don't match up
+                if (at_square->bit()->getOwner() != squareToCheck->bit()->getOwner()) {
+                    break;
+                }
+
+                // Win check
+                if(i == 2) {
+                    return at_square->bit()->getOwner();
+                }
+
+            }
+
+            // Checks down right
+
+            squareToCheck = at_square;
+
+            for (int i = 0; i < 3; i++) {
+                
+                // safety checks
+
+                if(squareToCheck->getColumn() + 1 >= _gameOptions.rowX || squareToCheck->getRow() + 1 >= _gameOptions.rowY) {
+                    break;
+                }
+
+                // grabs a ref to the new chess square
+                squareToCheck = _grid->getBR(squareToCheck->getColumn(), squareToCheck->getRow());
+
+                // checks if it has a player
+                if(squareToCheck->bit() == nullptr) {
+                    break;
+                }
+                
+                // break if at any point the elements don't match up
+                if (at_square->bit()->getOwner() != squareToCheck->bit()->getOwner()) {
+                    break;
+                }
+
+                // Win check
+                if(i == 2) {
+                    return at_square->bit()->getOwner();
+                }
+
+            }
+
+        }
+
+    }
+
     return nullptr;
 }
 
