@@ -314,49 +314,49 @@ void Connect4::updateAI() {
 
     bool can_win = false;
 
-    // for (int i = 0; i < _gameOptions.rowX; i++) {
+    for (int i = 0; i < _gameOptions.rowX; i++) {
 
-    //     if (can_win) {
-    //         break;
-    //     }
+        if (can_win) {
+            break;
+        }
 
-    //     int currentLocat = i;
-    //     int nextLocat = i + _gameOptions.rowX;
+        int currentLocat = i;
+        int nextLocat = i + _gameOptions.rowX;
 
-	// 	if(state[currentLocat] == '-') {
+		if(state[currentLocat] == '-') {
 
-    //         // needs to check the lowest location
+            // needs to check the lowest location
 
-    //         while(!((nextLocat / _gameOptions.rowX) >= _gameOptions.rowY) && state[currentLocat] == '-'){
+            while(!((nextLocat / _gameOptions.rowX) >= _gameOptions.rowY) && state[currentLocat] == '-'){
 
-    //             if (state[nextLocat] != '-') {
-    //                 break;
-    //             }
+                if (state[nextLocat] != '-') {
+                    break;
+                }
 
-    //             currentLocat = nextLocat;
-    //             nextLocat += _gameOptions.rowX;
+                currentLocat = nextLocat;
+                nextLocat += _gameOptions.rowX;
 
-    //         }
+            }
 
-    //         state[currentLocat] = _gameOptions.AIPlayer + '0';
+            state[currentLocat] = _gameOptions.AIPlayer + '0';
 
-    //         std::cout << "attempting a play at index " << currentLocat << " being " << currentLocat % _gameOptions.rowX << " , "<< currentLocat / _gameOptions.rowX << std::endl;
+            std::cout << "attempting a play at index " << currentLocat << " being " << currentLocat % _gameOptions.rowX << " , "<< currentLocat / _gameOptions.rowX << std::endl;
 
-    //         if (checkForAIWinner(state, _gameOptions, 0) != 0) {
+            if (checkForAIWinner(state, _gameOptions, 0) != 0) {
 
-    //             std::cout << "can win this turn" << std::endl;
+                std::cout << "can win this turn" << std::endl;
 
-    //             bestSquare = currentLocat;
-    //             can_win = true;
-    //             continue;
+                bestSquare = currentLocat;
+                can_win = true;
+                continue;
 
-    //         }
+            }
 
-    //         state[currentLocat] = '-';
+            state[currentLocat] = '-';
 
-	// 	}
+		}
 
-	// }
+	}
 
     // then do negamax
     if (!can_win) {
@@ -385,7 +385,7 @@ void Connect4::updateAI() {
 
                 state[currentLocat] = _gameOptions.AIPlayer + '0';
 
-                int aimove = -negamax(state, 0, alpha, beta, (_gameOptions.AIPlayer == 1 ? 1 : -1));
+                int aimove = -negamax(state, 0, alpha, beta, (_gameOptions.AIPlayer == 1 ? 1 : -1)) + WEIGHT_TABLE[currentLocat / _gameOptions.rowX][currentLocat % _gameOptions.rowX];
 
                 state[currentLocat] = '-';
 
