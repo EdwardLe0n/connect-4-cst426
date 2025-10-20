@@ -243,7 +243,7 @@ Player* Connect4::checkForWinner() {
 }
 
 bool Connect4::checkForDraw() {
-    return false;
+    return stateString().find('-') == std::string::npos;
 }
 
 void Connect4::stopGame() {
@@ -308,43 +308,98 @@ void Connect4::updateAI() {
     int beta = 100000;
 
     std::cout << "AI player is " << _gameOptions.AIPlayer << std::endl;
+    std::cout << state << std::endl;
 
-	for (int i = 0; i < _gameOptions.rowX; i++) {
+    // Check for immediate wins first
 
-        int currentLocat = i;
-        int nextLocat = i + _gameOptions.rowX;
+    bool can_win = false;
 
-		if(state[currentLocat] == '-') {
+    // for (int i = 0; i < _gameOptions.rowX; i++) {
 
-            // needs to check the lowest location
+    //     if (can_win) {
+    //         break;
+    //     }
 
-            while(!((nextLocat / _gameOptions.rowX) >= _gameOptions.rowY) && state[currentLocat] == '-'){
+    //     int currentLocat = i;
+    //     int nextLocat = i + _gameOptions.rowX;
 
-                if (state[nextLocat] != '-') {
-                    break;
+	// 	if(state[currentLocat] == '-') {
+
+    //         // needs to check the lowest location
+
+    //         while(!((nextLocat / _gameOptions.rowX) >= _gameOptions.rowY) && state[currentLocat] == '-'){
+
+    //             if (state[nextLocat] != '-') {
+    //                 break;
+    //             }
+
+    //             currentLocat = nextLocat;
+    //             nextLocat += _gameOptions.rowX;
+
+    //         }
+
+    //         state[currentLocat] = _gameOptions.AIPlayer + '0';
+
+    //         std::cout << "attempting a play at index " << currentLocat << " being " << currentLocat % _gameOptions.rowX << " , "<< currentLocat / _gameOptions.rowX << std::endl;
+
+    //         if (checkForAIWinner(state, _gameOptions, 0) != 0) {
+
+    //             std::cout << "can win this turn" << std::endl;
+
+    //             bestSquare = currentLocat;
+    //             can_win = true;
+    //             continue;
+
+    //         }
+
+    //         state[currentLocat] = '-';
+
+	// 	}
+
+	// }
+
+    // then do negamax
+    if (!can_win) {
+
+        std::cout << "negamax time" << std::endl;
+
+        for (int i = 0; i < _gameOptions.rowX; i++) {
+
+            int currentLocat = i;
+            int nextLocat = i + _gameOptions.rowX;
+
+            if(state[currentLocat] == '-') {
+
+                // needs to check the lowest location
+
+                while(!((nextLocat / _gameOptions.rowX) >= _gameOptions.rowY) && state[currentLocat] == '-'){
+
+                    if (state[nextLocat] != '-') {
+                        break;
+                    }
+
+                    currentLocat = nextLocat;
+                    nextLocat += _gameOptions.rowX;
+
                 }
 
-                currentLocat = nextLocat;
-                nextLocat += _gameOptions.rowX;
+                state[currentLocat] = _gameOptions.AIPlayer + '0';
+
+                int aimove = -negamax(state, 0, alpha, beta, (_gameOptions.AIPlayer == 1 ? 1 : -1));
+
+                state[currentLocat] = '-';
+
+                if (aimove > bestMove) {
+
+                    bestMove = aimove;
+                    bestSquare = currentLocat;
+
+                }
 
             }
 
-            state[currentLocat] = _gameOptions.AIPlayer;
-
-            int aimove = -negamax(state, 0, alpha, beta, getHumanPlayer());
-
-            state[currentLocat] = '-';
-
-            if (aimove > bestMove) {
-
-                bestMove = aimove;
-                bestSquare = currentLocat;
-
-            }
-
-		}
-
-	}
+        }
+    }
 
     std::cout << "Best square is " << bestSquare << std::endl;
 
@@ -379,7 +434,7 @@ int Connect4::checkForAIWinner(const std::string &state, const GameOptions &_gam
 
             // Checks horizontals
 
-            if (x + 4 <= _gameOptions.rowX) {
+            if (x + 3 < _gameOptions.rowX) {
 
                 // check right
 
@@ -476,7 +531,7 @@ int Connect4::negamax(std::string &state, int depth, int alpha, int beta, int pl
 
     int bestVal = -10000;
 
-    if (depth == 7) {
+    if (depth == 4) {
         for (int i = 0; i < _gameOptions.rowX; i++) {
 
             int currentLocat = i;
@@ -528,14 +583,17 @@ int Connect4::negamax(std::string &state, int depth, int alpha, int beta, int pl
 
                 }
 
-                state[currentLocat] = playerColor == _gameOptions.AIPlayer ? '0' : '1';
+                state[currentLocat] = playerColor == AI_PLAYER ? '0' : '1';
                 
                 // The reason alpha and beta swap is beacuse they represent the player and the AI
                 // On top of this, what is good for one, is bad for the other
                 // i.e. Player wants to win, but the AI doesn't want the player to win, and vice-versa
                 
-                bestVal = std::max(bestVal, -negamax(state, depth + 1, -beta, -alpha, -playerColor));
+                // attempting to add weight table to influence choice
                 
+                // bestVal = std::max(bestVal, -WEIGHT_TABLE[currentLocat / _gameOptions.rowX][currentLocat % _gameOptions.rowX] - negamax(state, depth + 1, -beta, -alpha, -playerColor));
+                bestVal = std::max(bestVal, -negamax(state, depth + 1, -beta, -alpha, -playerColor));
+
                 state[currentLocat] = '-';
                 alpha = std::max(alpha, bestVal);
                 if (alpha > beta) {
