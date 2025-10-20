@@ -1,8 +1,17 @@
 #include "Connect4.h"
 #include <utility>
 
+const int WEIGHT_TABLE[6][7] = {
+    {3, 4, 5, 7, 5, 4, 3},
+    {4, 6, 8, 9, 8, 4, 4},
+    {5, 8, 11, 13, 11, 8, 5},
+    {5, 8, 11, 13, 11, 8, 5},
+    {4, 6, 8, 9, 8, 4, 4},
+    {3, 4, 5, 7, 5, 4, 3},
+};
+
 Connect4::Connect4() : Game() {
-    _grid = new Grid(6, 7);
+    _grid = new Grid(7, 6);
 }
 
 Connect4::~Connect4() {
@@ -11,8 +20,8 @@ Connect4::~Connect4() {
 
 void Connect4::setUpBoard() {
     setNumberOfPlayers(2);
-    _gameOptions.rowX = 6;
-    _gameOptions.rowY = 7;
+    _gameOptions.rowX = 7;
+    _gameOptions.rowY = 6;
 
     // Initialize all squares
     _grid->initializeSquares(80, "square.png");
@@ -309,30 +318,34 @@ void Connect4::updateAI() {
 	for (int i = 0; i < _gameOptions.rowX; i++) {
 
         int currentLocat = i;
-        int nextLocat = i + 7;
+        int nextLocat = i + _gameOptions.rowX;
 
 		if(state[currentLocat] == '-') {
 
             // needs to check the lowest location
 
-            // while(!(nextLocat > state.length())){
+            while(!((nextLocat / _gameOptions.rowX) >= _gameOptions.rowY) && state[currentLocat] == '-'){
 
-            // }
+                if (state[nextLocat] != '-') {
+                    break;
+                }
 
-			// actionForEmptyHolder(&_grid[i/3][i%3]);
-			
+                currentLocat = nextLocat;
+                nextLocat += _gameOptions.rowX;
+
+            }
+
             state[currentLocat] = getAIPlayer();
 
-            int aimove = -negamax(state, 0, alpha, beta, HUMAN_PLAYER);
+            int aimove = -negamax(state, 0, alpha, beta, getHumanPlayer());
 
             state[currentLocat] = '-';
 
             if (aimove > bestMove) {
 
-                // std::cout << i << std::endl;
-
                 bestMove = aimove;
-                bestSquare = i;
+                bestSquare = currentLocat;
+
             }
 
 		}
@@ -360,11 +373,85 @@ bool Connect4::isAIBoardFull(const std::string &state) {
 
 int Connect4::checkForAIWinner(const std::string &state, const GameOptions &_gameOptions, int target) {
 
+    int amountToReturn = 100;
+
     for (int y = 0; y < _gameOptions.rowY; y++) {
         
         for (int x = 0; x < _gameOptions.rowX; x++) {
 
-            
+            if (state[y * _gameOptions.rowX + x] == '-') {
+                continue;
+            }
+
+            // Checks horizontals
+
+            if (x + 4 <= _gameOptions.rowX) {
+
+                // check right
+
+                if (
+                    (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + 1]) &&
+                    (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + 2]) &&
+                    (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + 3]) &&
+                    (state[y * _gameOptions.rowX + x] != '-') 
+                ) {
+
+                    return amountToReturn;
+
+                }
+
+                // check down right
+
+                if (y + 3 < _gameOptions.rowY) {
+
+                    if (
+                    (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + 1 + _gameOptions.rowX]) &&
+                    (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + 2 + (_gameOptions.rowX * 2)]) &&
+                    (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + 3 + (_gameOptions.rowX * 3)]) &&
+                    (state[y * _gameOptions.rowX + x] != '-') 
+                    ) {
+
+                        return amountToReturn;
+
+                    }
+
+                }
+
+                // check up right
+
+                if (y - 3 >= 0) {
+                    
+                    if (
+                    (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + 1 - _gameOptions.rowX]) &&
+                    (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + 2 - (_gameOptions.rowX * 2)]) &&
+                    (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + 3 - (_gameOptions.rowX * 3)]) &&
+                    (state[y * _gameOptions.rowX + x] != '-') 
+                    ) {
+
+                        return amountToReturn;
+
+                    }
+
+                }
+
+            }
+
+            // check down
+            if (y + 3 < _gameOptions.rowY) {
+
+                if (
+                (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + _gameOptions.rowX]) &&
+                (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + (_gameOptions.rowX * 2)]) &&
+                (state[y * _gameOptions.rowX + x] == state[y * _gameOptions.rowX + x + (_gameOptions.rowX * 3)]) &&
+                (state[y * _gameOptions.rowX + x] != '-') 
+                ) {
+
+                    return amountToReturn;
+
+                }
+
+            }
+
 
         }
 
@@ -377,6 +464,8 @@ int Connect4::checkForAIWinner(const std::string &state, const GameOptions &_gam
 
 
 int Connect4::negamax(std::string &state, int depth, int alpha, int beta, int playerColor) {
+
+    // std::cout << "called negamax" << std::endl;
 
     // _looked_at++;
 
@@ -395,24 +484,75 @@ int Connect4::negamax(std::string &state, int depth, int alpha, int beta, int pl
 
     int bestVal = -10000;
 
-    for(int i = 0; i < _gameOptions.rowX * _gameOptions.rowY; i++) {
+    if (depth == 3) {
+        for (int i = 0; i < _gameOptions.rowX; i++) {
 
-        if(state[i] == '0') {
+            int currentLocat = i;
+            int nextLocat = i + _gameOptions.rowX;
 
-            state[i] = playerColor == HUMAN_PLAYER ? '1' : '2';
-            
-            // The reason alpha and beta swap is beacuse they represent the player and the AI
-            // On top of this, what is good for one, is bad for the other
-            // i.e. Player wants to win, but the AI doesn't want the player to win, and vice-versa
-            bestVal = std::max(bestVal, -negamax(state, depth + 1, -beta, -alpha, -playerColor));
-            state[i] = '0';
-            alpha = std::max(alpha, bestVal);
-            if (alpha > beta) {
-                break;
+            if(state[currentLocat] == '-') {
+
+                // needs to check the lowest location
+
+                while(!((nextLocat / _gameOptions.rowX) >= _gameOptions.rowY) && state[currentLocat] == '-'){
+
+                    if (state[nextLocat] != '-') {
+                        break;
+                    }
+
+                    currentLocat = nextLocat;
+                    nextLocat += _gameOptions.rowX;
+
+                }
+
+                // add weight here
+
+                // std::cout << "running into depth" << std::endl;
+
+                bestVal = std::max(bestVal, WEIGHT_TABLE[currentLocat / _gameOptions.rowX][currentLocat % _gameOptions.rowX]);
+
             }
 
         }
+    }
+    else {
+        for (int i = 0; i < _gameOptions.rowX; i++) {
 
+            int currentLocat = i;
+            int nextLocat = i + _gameOptions.rowX;
+
+            if(state[currentLocat] == '-') {
+
+                // needs to check the lowest location
+
+                while(!((nextLocat / _gameOptions.rowX) >= _gameOptions.rowY) && state[currentLocat] == '-'){
+
+                    if (state[nextLocat] != '-') {
+                        break;
+                    }
+
+                    currentLocat = nextLocat;
+                    nextLocat += _gameOptions.rowX;
+
+                }
+
+                state[currentLocat] = playerColor == HUMAN_PLAYER ? '0' : '2';
+                
+                // The reason alpha and beta swap is beacuse they represent the player and the AI
+                // On top of this, what is good for one, is bad for the other
+                // i.e. Player wants to win, but the AI doesn't want the player to win, and vice-versa
+                
+                bestVal = std::max(bestVal, -negamax(state, depth + 1, -beta, -alpha, -playerColor));
+                
+                state[currentLocat] = '-';
+                alpha = std::max(alpha, bestVal);
+                if (alpha > beta) {
+                    break;
+                }
+
+            }
+
+        }
     }
 
     return bestVal;
