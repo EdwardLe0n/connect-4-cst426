@@ -64,6 +64,16 @@ namespace ClassGame {
                         
                         game->setUpBoard();
                     }
+                    if (ImGui::Button("Start Connect 4 AI First")) {
+                        game = new Connect4();
+                        game->setUpBoard();
+                        game->setAIPlayer(0);
+                    }
+                    if (ImGui::Button("Start Connect 4 AI Second")) {
+                        game = new Connect4();
+                        game->setUpBoard();
+                        game->setAIPlayer(1);
+                    }
                 } else {
                     ImGui::Text("Current Player Number: %d", game->getCurrentPlayer()->playerNumber());
                     ImGui::Text("Current Board State: %s", game->stateString().c_str());

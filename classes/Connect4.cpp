@@ -65,6 +65,12 @@ bool Connect4::actionForEmptyHolder(BitHolder &holder) {
         bit->moveTo(_grid->getSquare(coords.first, coords.second)->getPosition());
         _grid->getSquare(coords.first, coords.second)->setBit(bit);
 
+        // Shouldn't be needed
+
+        // if (_gameOptions.AIPlayer) {
+        //     _gameOptions.AIPlaying = !_gameOptions.AIPlaying;
+        // }
+
         endTurn();
         return true;
     }
@@ -244,11 +250,27 @@ void Connect4::stopGame() {
 }
 
 std::string Connect4::initialStateString() {
-    return "-------------------------------------------------";
+    return "0000000000000000000000000000000000000000000000000";
 }
 
 std::string Connect4::stateString() {
-    return _grid->getStateString();
+
+    std::string state;
+
+    for (int y = 0; y < _gameOptions.rowY; y++) {
+        for (int x = 0; x < _gameOptions.rowX; x++) {
+            if (_grid->getSquare(x, y) != nullptr) {
+                Bit* bit = _grid->getSquare(x, y)->bit();
+                if (bit) {
+                    state += std::to_string((bit->gameTag() + 1));
+                } else {
+                    state += '-';
+                }
+            }
+        }
+    }
+
+    return state;
 }
 
 void Connect4::setStateString(const std::string &s) {
@@ -269,4 +291,131 @@ void Connect4::setStateString(const std::string &s) {
     });
 }
 
-void Connect4::updateAI() {}
+void Connect4::updateAI() {
+
+    // we will implement the AI in the next assignment!
+
+    std::string state = stateString();
+    int bestMove = -100000;
+    int bestSquare = -1;
+
+    // _looked_at = 0;
+
+    int alpha = -100000;
+    int beta = 100000;
+
+    std::cout << "AI player is " << getAIPlayer() << std::endl;
+
+	for (int i = 0; i < _gameOptions.rowX; i++) {
+
+        int currentLocat = i;
+        int nextLocat = i + 7;
+
+		if(state[currentLocat] == '-') {
+
+            // needs to check the lowest location
+
+            // while(!(nextLocat > state.length())){
+
+            // }
+
+			// actionForEmptyHolder(&_grid[i/3][i%3]);
+			
+            state[currentLocat] = getAIPlayer();
+
+            int aimove = -negamax(state, 0, alpha, beta, HUMAN_PLAYER);
+
+            state[currentLocat] = '-';
+
+            if (aimove > bestMove) {
+
+                // std::cout << i << std::endl;
+
+                bestMove = aimove;
+                bestSquare = i;
+            }
+
+		}
+
+	}
+
+    std::cout << "Best square is " << bestSquare << std::endl;
+
+    if (bestSquare != -1) {
+
+        std::cout << "Added new piece" << std::endl;
+
+        BitHolder* someHolder = (BitHolder*)(_grid->getSquareByIndex(bestSquare));
+
+        actionForEmptyHolder(*someHolder);
+        endTurn();
+    }
+
+}
+
+bool Connect4::isAIBoardFull(const std::string &state) {
+
+    return (state.find('-') == std::string::npos);
+
+}
+
+int Connect4::checkForAIWinner(const std::string &state, const GameOptions &_gameOptions, int target) {
+
+    for (int y = 0; y < _gameOptions.rowY; y++) {
+        
+        for (int x = 0; x < _gameOptions.rowX; x++) {
+
+            
+
+        }
+
+    }
+
+    return 0;
+
+}
+
+
+
+int Connect4::negamax(std::string &state, int depth, int alpha, int beta, int playerColor) {
+
+    // _looked_at++;
+
+    int score = checkForAIWinner(state, _gameOptions, playerColor);
+
+    if (score) {
+
+        // a winning state here is a loss for the recursive parent
+        return -score;
+
+    }
+
+    if (isAIBoardFull(state)) {
+        return 0;
+    }
+
+    int bestVal = -10000;
+
+    for(int i = 0; i < _gameOptions.rowX * _gameOptions.rowY; i++) {
+
+        if(state[i] == '0') {
+
+            state[i] = playerColor == HUMAN_PLAYER ? '1' : '2';
+            
+            // The reason alpha and beta swap is beacuse they represent the player and the AI
+            // On top of this, what is good for one, is bad for the other
+            // i.e. Player wants to win, but the AI doesn't want the player to win, and vice-versa
+            bestVal = std::max(bestVal, -negamax(state, depth + 1, -beta, -alpha, -playerColor));
+            state[i] = '0';
+            alpha = std::max(alpha, bestVal);
+            if (alpha > beta) {
+                break;
+            }
+
+        }
+
+    }
+
+    return bestVal;
+
+}
