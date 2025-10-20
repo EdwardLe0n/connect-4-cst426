@@ -74,12 +74,6 @@ bool Connect4::actionForEmptyHolder(BitHolder &holder) {
         bit->moveTo(_grid->getSquare(coords.first, coords.second)->getPosition());
         _grid->getSquare(coords.first, coords.second)->setBit(bit);
 
-        // Shouldn't be needed
-
-        // if (_gameOptions.AIPlayer) {
-        //     _gameOptions.AIPlaying = !_gameOptions.AIPlaying;
-        // }
-
         endTurn();
         return true;
     }
@@ -271,7 +265,7 @@ std::string Connect4::stateString() {
             if (_grid->getSquare(x, y) != nullptr) {
                 Bit* bit = _grid->getSquare(x, y)->bit();
                 if (bit) {
-                    state += std::to_string((bit->gameTag() + 1));
+                    state += std::to_string((bit->gameTag() + 1) / 2);
                 } else {
                     state += '-';
                 }
@@ -313,7 +307,7 @@ void Connect4::updateAI() {
     int alpha = -100000;
     int beta = 100000;
 
-    std::cout << "AI player is " << getAIPlayer() << std::endl;
+    std::cout << "AI player is " << _gameOptions.AIPlayer << std::endl;
 
 	for (int i = 0; i < _gameOptions.rowX; i++) {
 
@@ -335,7 +329,7 @@ void Connect4::updateAI() {
 
             }
 
-            state[currentLocat] = getAIPlayer();
+            state[currentLocat] = _gameOptions.AIPlayer;
 
             int aimove = -negamax(state, 0, alpha, beta, getHumanPlayer());
 
@@ -461,8 +455,6 @@ int Connect4::checkForAIWinner(const std::string &state, const GameOptions &_gam
 
 }
 
-
-
 int Connect4::negamax(std::string &state, int depth, int alpha, int beta, int playerColor) {
 
     // std::cout << "called negamax" << std::endl;
@@ -484,7 +476,7 @@ int Connect4::negamax(std::string &state, int depth, int alpha, int beta, int pl
 
     int bestVal = -10000;
 
-    if (depth == 3) {
+    if (depth == 7) {
         for (int i = 0; i < _gameOptions.rowX; i++) {
 
             int currentLocat = i;
@@ -536,7 +528,7 @@ int Connect4::negamax(std::string &state, int depth, int alpha, int beta, int pl
 
                 }
 
-                state[currentLocat] = playerColor == HUMAN_PLAYER ? '0' : '2';
+                state[currentLocat] = playerColor == _gameOptions.AIPlayer ? '0' : '1';
                 
                 // The reason alpha and beta swap is beacuse they represent the player and the AI
                 // On top of this, what is good for one, is bad for the other

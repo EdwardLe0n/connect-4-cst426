@@ -25,7 +25,7 @@ public:
 
     // AI methods
     void        updateAI() override;
-    bool        gameHasAI() override { return _gameOptions.AIPlayer; } // Set to true when AI is implemented
+    bool        gameHasAI() override { return _gameOptions.AIPlaying; } // Set to true when AI is implemented
     Grid* getGrid() override { return _grid; }
 
     bool        isAIBoardFull(const std::string &state);
