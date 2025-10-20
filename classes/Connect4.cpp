@@ -348,7 +348,6 @@ void Connect4::updateAI() {
         BitHolder* someHolder = (BitHolder*)(_grid->getSquareByIndex(bestSquare));
 
         actionForEmptyHolder(*someHolder);
-        endTurn();
     }
 
 }
