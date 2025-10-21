@@ -24,7 +24,7 @@ void Connect4::setUpBoard() {
     _gameOptions.rowY = 6;
 
     // Initialize all squares
-    _grid->initializeSquares(80, "square.png");
+    _grid->initializeSquares(80, "block.png");
 
     startGame();
 }
@@ -531,7 +531,7 @@ int Connect4::negamax(std::string &state, int depth, int alpha, int beta, int pl
 
     int bestVal = -10000;
 
-    if (depth == 4) {
+    if (depth == 5) {
         for (int i = 0; i < _gameOptions.rowX; i++) {
 
             int currentLocat = i;
